@@ -46,7 +46,7 @@ channel_name(package::Module, image::Symbol) = "$VERSION/$(nameof(package))/$ima
 # Config:
 #
 
-const SYSIMAGE_EXTENSION = Sys.iswindows() ? "dll" : "so"
+const SYSIMAGE_EXTENSION = Sys.iswindows() ? "dll" : Sys.isapple() ? "dylib" : "so"
 
 struct Config
     image::String
