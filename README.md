@@ -1,7 +1,7 @@
 # SystemImageLoader.jl
 
 Ship system images and associated depots via Julia's artifacts system and load
-them via custom `juliaup` channels that that handle depot path and sysimage
+them via custom `juliaup` channels that handle depot path and sysimage
 selection automatically.
 
 ## Usage
