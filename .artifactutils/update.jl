@@ -9,7 +9,7 @@ platforms = Dict(
     "aarch64-unknown-linux-gnu" => Platform("aarch64", "linux"),
     "x86_64-pc-windows-gnu" => Platform("x86_64", "windows"),
 )
-version = v"1.0.0"
+version = v"1.0.1"
 artifact_file = joinpath(@__DIR__, "..", "Artifacts.toml")
 url_base = "https://github.com/MichaelHatherly/system-image-loader/releases/download"
 

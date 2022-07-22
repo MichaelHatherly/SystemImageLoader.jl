@@ -1,51 +1,51 @@
 [[system-image-loader]]
 arch = "aarch64"
-git-tree-sha1 = "e897ef1ad72bae76e8a57213611705e8b8e64ecd"
+git-tree-sha1 = "28759362e92f9c1e7455182b1ab7b0b81af73ab0"
 libc = "glibc"
 os = "linux"
 
     [[system-image-loader.download]]
-    sha256 = "1ca6439bbab645e591ff1c2e3f81d7c35007e71d4e54e5c11c2c6a5a69a38fc9"
-    url = "https://github.com/MichaelHatherly/system-image-loader/releases/download/v1.0.0/system-image-loader-1.0.0-aarch64-unknown-linux-gnu.tar.gz"
+    sha256 = "b64bf65751ac8122e35fa6e8af6dbe101d5ebc3d624beb5221659ca4a99f3ac5"
+    url = "https://github.com/MichaelHatherly/system-image-loader/releases/download/v1.0.1/system-image-loader-1.0.1-aarch64-unknown-linux-gnu.tar.gz"
 [[system-image-loader]]
 arch = "i686"
-git-tree-sha1 = "655c4f6be9e469bbfb2eeeee7a9ad34b9eecf798"
+git-tree-sha1 = "c0dd3c10b4cf915b7d3320b0af2a242954093812"
 libc = "glibc"
 os = "linux"
 
     [[system-image-loader.download]]
-    sha256 = "2294ca405a5aa627c99f4ce58eae5abdbc5779a006f4b75b63c934972690bc34"
-    url = "https://github.com/MichaelHatherly/system-image-loader/releases/download/v1.0.0/system-image-loader-1.0.0-i686-unknown-linux-gnu.tar.gz"
+    sha256 = "35f3c08414f8169c30ba1e83ba2276fb21e85e53d0df0446aed9e2e413b929c7"
+    url = "https://github.com/MichaelHatherly/system-image-loader/releases/download/v1.0.1/system-image-loader-1.0.1-i686-unknown-linux-gnu.tar.gz"
 [[system-image-loader]]
 arch = "x86_64"
-git-tree-sha1 = "8b7b164dd0cee01835848d9994e9aed993f62b69"
+git-tree-sha1 = "8f4e15acdeaf9e00f3a9cf49b8c19144a2995899"
 libc = "glibc"
 os = "linux"
 
     [[system-image-loader.download]]
-    sha256 = "45a4dea019f7de2ef22349437b9641bf3f859637d198b9fd6c7b4e94e02ab9eb"
-    url = "https://github.com/MichaelHatherly/system-image-loader/releases/download/v1.0.0/system-image-loader-1.0.0-x86_64-unknown-linux-gnu.tar.gz"
+    sha256 = "66418c32929de71124be20248bac6db79ef7f6c907490ed9824c2d96eeea1c30"
+    url = "https://github.com/MichaelHatherly/system-image-loader/releases/download/v1.0.1/system-image-loader-1.0.1-x86_64-unknown-linux-gnu.tar.gz"
 [[system-image-loader]]
 arch = "x86_64"
-git-tree-sha1 = "62315165cb79d554625e1b42b30356ac24864fe7"
+git-tree-sha1 = "c1e8d8760599413145e33ae0b840ca02759e3d1f"
 os = "macos"
 
     [[system-image-loader.download]]
-    sha256 = "8de3b9cfe626a160e26864de24c44d5e61423d543421321784c0999feb82ed97"
-    url = "https://github.com/MichaelHatherly/system-image-loader/releases/download/v1.0.0/system-image-loader-1.0.0-x86_64-apple-darwin.tar.gz"
+    sha256 = "8fd8aaac609e579b9d4a5b7d2ca48e8885b24d7454b1264c0c2ed90dd556ffeb"
+    url = "https://github.com/MichaelHatherly/system-image-loader/releases/download/v1.0.1/system-image-loader-1.0.1-x86_64-apple-darwin.tar.gz"
 [[system-image-loader]]
 arch = "x86_64"
-git-tree-sha1 = "62c0384bd9a17b8113a3731a6909bdb2436ec894"
+git-tree-sha1 = "921b90dd5d2693be6f6b138788afabf37b28b093"
 os = "windows"
 
     [[system-image-loader.download]]
-    sha256 = "7159366b136cd04a155ff2c13a84e859882fe1155440103312f2be0842fcc1c2"
-    url = "https://github.com/MichaelHatherly/system-image-loader/releases/download/v1.0.0/system-image-loader-1.0.0-x86_64-pc-windows-gnu.tar.gz"
+    sha256 = "a049495e1d967145fb5850753258ef686d3bc98c56587e62a0fa55d3adaecaf1"
+    url = "https://github.com/MichaelHatherly/system-image-loader/releases/download/v1.0.1/system-image-loader-1.0.1-x86_64-pc-windows-gnu.tar.gz"
 [[system-image-loader]]
 arch = "aarch64"
-git-tree-sha1 = "ea4a901f00606076e0c9a16ff0777c04e0a1b69d"
+git-tree-sha1 = "b4dd046d817c61f5c3729903eb93e5098f6d4d3a"
 os = "macos"
 
     [[system-image-loader.download]]
-    sha256 = "a39a3196577fded8a08b2267e5a7df439563952a307e5363a86ebc4bf86f93fc"
-    url = "https://github.com/MichaelHatherly/system-image-loader/releases/download/v1.0.0/system-image-loader-1.0.0-aarch64-apple-darwin.tar.gz"
+    sha256 = "014f8caa61aff80af29a1900c9946819207887eeb28218bf6236018acf112fb8"
+    url = "https://github.com/MichaelHatherly/system-image-loader/releases/download/v1.0.1/system-image-loader-1.0.1-aarch64-apple-darwin.tar.gz"
