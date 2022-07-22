@@ -1,6 +1,8 @@
 # SystemImageLoader.jl
 
-Ship system images and associated depots via Julia's artifacts system.
+Ship system images and associated depots via Julia's artifacts system and load
+them via custom `juliaup` channels that that handle depot path and sysimage
+selection automatically.
 
 ## Usage
 
@@ -38,3 +40,30 @@ end
 
 end
 ```
+
+To load the custom system images on `julia` startup you will need to have
+`juliaup` installed and available on your `PATH`.
+
+```
+julia> using MyCustomImages, SystemImageLoader
+
+julia> link(MyCustomImages, :MyImage)
+```
+
+and then start `julia` with the newly added channel:
+
+```
+$ julia +1.7.3/MyCustomImages/MyImage
+```
+
+which will find the linked system image and the depot path that contains any
+artifacts it may require and then launch `julia` with those set correctly.
+
+If the channel name is too long for you liking then you can alias it to another
+shorter channel name with `juliaup` like so:
+
+```
+$ juliaup link MyImage julia +1.7.3/MyCustomImages/MyImage
+```
+
+which can then be started with just `julia +MyImage`.
