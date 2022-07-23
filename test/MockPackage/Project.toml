@@ -1,0 +1,7 @@
+name = "MockPackage"
+uuid = "e4b49f1e-ac46-41c7-9bbc-9975b1901721"
+authors = ["Mike <michaelhatherly@gmail.com>"]
+version = "0.1.0"
+
+[system-image-loader.default]
+image = "sys"

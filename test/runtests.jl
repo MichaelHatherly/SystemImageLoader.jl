@@ -20,4 +20,18 @@ using TOML
     @test length(toml) == 2
     @test isfile(toml["image"])
     @test !isempty(toml["depot"])
+
+    @test_throws ErrorException SystemImageLoader.config(:default)
+
+    cd(joinpath(@__DIR__, "MockPackage")) do
+        @test_throws ErrorException SystemImageLoader.config(:unknown)
+        config = SystemImageLoader.config(:default)
+        @test isfile(config.image)
+        @test config.depot == first(Base.DEPOT_PATH)
+        cd("src") do
+            config = SystemImageLoader.config(:default)
+            @test isfile(config.image)
+            @test config.depot == first(Base.DEPOT_PATH)
+        end
+    end
 end
