@@ -24,18 +24,14 @@ using TOML
     @test_throws ErrorException SystemImageLoader.config(:default)
 
     cd(joinpath(@__DIR__, "MockPackage")) do
-        image = unsafe_string(Base.JLOptions().image_file)
-        dst = joinpath(pwd(), basename(image))
-        cp(image, dst)
         @test_throws ErrorException SystemImageLoader.config(:unknown)
         config = SystemImageLoader.config(:default)
-        @test config.image == dst
+        @test isfile(config.image)
         @test config.depot == first(Base.DEPOT_PATH)
         cd("src") do
             config = SystemImageLoader.config(:default)
-            @test config.image == dst
+            @test isfile(config.image)
             @test config.depot == first(Base.DEPOT_PATH)
         end
-        rm(dst)
     end
 end
