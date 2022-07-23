@@ -119,7 +119,12 @@ function get_loader_section_from_project(dir::String)
         if dir == homedir()
             return (dir, DICT())
         else
-            return get_loader_section_from_project(dirname(dir))
+            parent = dirname(dir)
+            if parent == dir
+                return (dir, DICT())
+            else
+                return get_loader_section_from_project(dirname(dir))
+            end
         end
     else
         return (dir, DICT())
