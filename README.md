@@ -8,7 +8,7 @@ The launcher binary `system-image-loader` used by this package to query and load
 user-provided system images is provide by the [`system-image-loader`](https://github.com/MichaelHatherly/system-image-loader).
 Bugs related to usage of that binary should be reported in that repository.
 
-For pre-built system images, please see [`ExampleSystemImages.jl`](https://github.com/MichaelHatherly/ExampleSystemImages.jl)
+For pre-built system images, please see [`CuratedSystemImages.jl`](https://github.com/MichaelHatherly/CuratedSystemImages.jl)
 which is used to build system images in CI based off of pre-defined manifests and provide
 them to users via Julia's artifacts system that can then be run locally.
 
