@@ -1,18 +1,120 @@
 module SystemImageLoader
 
 #
+# Imports:
+#
+
+using Artifacts
+import TOML
+import LazyArtifacts
+import REPL.TerminalMenus
+
+#
 # Exports:
 #
+
+export @ArtifactInstaller, @ArtifactConfig, @artifact_str, LazyArtifacts
 
 export Config
 
 export link, remove
 
 #
-# Imports:
+# Provider Interface:
 #
 
-using Artifacts, TOML
+struct ArtifactInstaller
+    lookup::Function
+    artifact_names::Vector{String}
+
+    ArtifactInstaller(lookup::Function, path::AbstractString) = new(lookup, collect(keys(TOML.parsefile(path))))
+end
+
+Base.show(io::IO, a::ArtifactInstaller) = print(io, "$ArtifactInstaller(", repr(a.artifact_names), ")")
+
+artifact_expr() = :(n -> $(Meta.parse("@artifact_str n"))) # HACK: get correct module for artifact lookup.
+
+"""
+Defines an interactive artifact installer that the user can run to select the
+artifacts that they would like to install locally.
+
+```julia
+module MySystemImageProvider
+
+using SystemImageLoader
+
+const install = @ArtifactInstaller
+
+end
+```
+
+Users can then either call `MySystemImageProvider.install()` to get an
+interactive prompt to select the available images for installation, or run
+`MySystemImageProvider.install("NameOfImage")` for non-interactive use.
+"""
+macro ArtifactInstaller()
+    toml = find_artifacts_toml(String(__source__.file))
+    lookup = artifact_expr()
+    return quote
+        include_dependency($toml)
+        ArtifactInstaller($lookup, $toml)
+    end
+end
+const __install = @ArtifactInstaller
+
+function (installer::ArtifactInstaller)()
+    if isinteractive()
+        @info "pick the system images you would like to install."
+        menu = TerminalMenus.MultiSelectMenu(installer.artifact_names)
+        for index in TerminalMenus.request(menu)
+            name = installer.artifact_names[index]
+            @info "installing `$name` system image."
+            installer.lookup(name)
+            @info "finished installing `$name` system image."
+        end
+    else
+        error("cannot use interactive installer in non-interactive Julia session.")
+    end
+end
+(installer::ArtifactInstaller)(name::AbstractString) = installer.lookup(name)
+
+struct ArtifactConfig
+    lookup::Function
+end
+
+Base.show(io::IO, ::ArtifactConfig) = print(io, "$ArtifactConfig()")
+
+function (config::ArtifactConfig)(name::Symbol)
+    name = String(name)
+    depot = config.lookup(name)
+    image = joinpath(depot, "system-images", "$name")
+    return Config(; image, depot)
+end
+
+"""
+Defines a default system image loader function which will be used to find the
+`depot` and `image` paths to load from.
+
+```julia
+module MySystemImageProvider
+
+using SystemImageLoader
+
+const config = @ArtifactConfig
+
+end
+```
+
+!!! note
+
+    This must be called `config` for the loader to correctly find and call it
+    during loading.
+"""
+macro ArtifactConfig()
+    lookup = artifact_expr()
+    return :(ArtifactConfig($lookup))
+end
+const __config = @ArtifactConfig
 
 #
 # Artifacts:
