@@ -25,12 +25,17 @@ export link, remove
 
 struct ArtifactInstaller
     lookup::Function
-    artifact_names::Vector{String}
-
-    ArtifactInstaller(lookup::Function, path::AbstractString) = new(lookup, collect(keys(TOML.parsefile(path))))
+    path::String
 end
 
-Base.show(io::IO, a::ArtifactInstaller) = print(io, "$ArtifactInstaller(", repr(a.artifact_names), ")")
+function Base.show(io::IO, a::ArtifactInstaller)
+    print(io, "$ArtifactInstaller(", repr(artifact_names(a)), ")")
+end
+
+function artifact_names(a::ArtifactInstaller)
+    path = find_artifacts_toml(a.path)
+    return collect(keys(TOML.parsefile(path)))
+end
 
 artifact_expr() = :(n -> $(Meta.parse("@artifact_str n"))) # HACK: get correct module for artifact lookup.
 
@@ -43,7 +48,7 @@ module MySystemImageProvider
 
 using SystemImageLoader
 
-const install = @ArtifactInstaller
+const install = @ArtifactInstaller "../Artifacts.toml"
 
 end
 ```
@@ -53,20 +58,19 @@ interactive prompt to select the available images for installation, or run
 `MySystemImageProvider.install("NameOfImage")` for non-interactive use.
 """
 macro ArtifactInstaller()
-    toml = find_artifacts_toml(String(__source__.file))
+    dir = dirname(String(__source__.file))
     lookup = artifact_expr()
-    return quote
-        include_dependency($toml)
-        ArtifactInstaller($lookup, $toml)
-    end
+    return :(ArtifactInstaller($lookup, $dir))
 end
+const __install = @ArtifactInstaller
 
 function (installer::ArtifactInstaller)()
     if isinteractive()
         @info "pick the system images you would like to install."
-        menu = TerminalMenus.MultiSelectMenu(installer.artifact_names)
+        names = artifact_names(installer)
+        menu = TerminalMenus.MultiSelectMenu(names)
         for index in TerminalMenus.request(menu)
-            name = installer.artifact_names[index]
+            name = names[index]
             @info "installing `$name` system image."
             installer.lookup(name)
             @info "finished installing `$name` system image."
@@ -113,6 +117,7 @@ macro ArtifactConfig()
     lookup = artifact_expr()
     return :(ArtifactConfig($lookup))
 end
+const __config = @ArtifactConfig
 
 #
 # Artifacts:
