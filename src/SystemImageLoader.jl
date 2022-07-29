@@ -60,7 +60,6 @@ macro ArtifactInstaller()
         ArtifactInstaller($lookup, $toml)
     end
 end
-const __install = @ArtifactInstaller
 
 function (installer::ArtifactInstaller)()
     if isinteractive()
@@ -114,7 +113,6 @@ macro ArtifactConfig()
     lookup = artifact_expr()
     return :(ArtifactConfig($lookup))
 end
-const __config = @ArtifactConfig
 
 #
 # Artifacts:

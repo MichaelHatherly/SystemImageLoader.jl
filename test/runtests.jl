@@ -34,7 +34,4 @@ using TOML
             @test config.depot == first(Base.DEPOT_PATH)
         end
     end
-
-    @test isa(SystemImageLoader.__install, SystemImageLoader.ArtifactInstaller)
-    @test isa(SystemImageLoader.__config, SystemImageLoader.ArtifactConfig)
 end
