@@ -28,7 +28,7 @@ the artifact `MyImage`. The `.tar.gz` must have the following structure:
 ```
 
 This is a minimal Julia depot folder, with everything not required removed. You
-can leave other content in the tarball if you want but this will wastes space
+can leave other content in the tarball if you want but this will waste space
 so best practise is to remove the extra folders.
 
 Users of your package can then perform the following steps to install and use your
