@@ -1,78 +1,82 @@
 # SystemImageLoader.jl
 
-Ship system images and associated depots via Julia's artifacts system and load
-them via custom `juliaup` channels that handle depot path and sysimage
-selection automatically.
-
-The launcher binary `system-image-loader` used by this package to query and load
-user-provided system images is provide by the [`system-image-loader`](https://github.com/MichaelHatherly/system-image-loader).
-Bugs related to usage of that binary should be reported in that repository.
-
-For pre-built system images, please see [`CuratedSystemImages.jl`](https://github.com/MichaelHatherly/CuratedSystemImages.jl)
-which is used to build system images in CI based off of pre-defined manifests and provide
-them to users via Julia's artifacts system that can then be run locally.
-
+Use Julia's artifact system to ship pre-built system images to users.
 
 ## Usage
 
 ```julia
 module MyCustomImages
 
-#=
-Images and depots can be provided however you want, but via the artifact system
-is the most straight forward approach. If you have multiple artifacts you may
-want to use `lazy` artifacts so that only the ones that are used actually get
-downloaded.
-=#
-using Artifacts
-
 using SystemImageLoader
 
-function config(name::Symbol)
-    #=
-    `name` can be used to dynamically pick one of several images and depots
-    that may be provided by `MyCustomImages`'s `Artifacts.toml` file. This can
-    contain any custom logic you need to select the right `image` and `depot`
-    paths needed.
-    =#
-
-    # The Julia depot to use for the above image.
-    depot = artifact"artifact-name"
-
-    # System image to load, without extension appended. Doesn't have to be in
-    # the same artifact.
-    image = artifact"artifact-name/system-image-name"
-
-    # Must return a `Config` object from `SystemImageLoader`.
-    return Config(; image, depot)
-end
+const install = @ArtifactInstaller(
+    artifact"MyImage",
+)
+const config = ArtifactConfig(install)
 
 end
 ```
 
-To load the custom system images on `julia` startup you will need to have
-`juliaup` installed and available on your `PATH`.
+Provide an `Artifacts.toml` file in your `MyCustomImages.jl` package that lists
+the artifact `MyImage`. The `.tar.gz` must have the following structure:
 
 ```
-julia> using MyCustomImages, SystemImageLoader
-
-julia> link(MyCustomImages, :MyImage)
+/artifacts
+  # All the Julia artifacts required by the system image.
+/system-images
+  # The system image with the name `ImageOne`.
 ```
 
-and then start `julia` with the newly added channel:
+This is a minimal Julia depot folder, with everything not required removed. You
+can leave other content in the tarball if you want but this will wastes space
+so best practise is to remove the extra folders.
+
+Users of your package can then perform the following steps to install and use your
+custom system image:
+
+```
+(@v1.7) pkg> add https://github.com/USER_NAME/MyCustomImages.jl
+
+julia> using MyCustomImages
+
+julia> MyCustomImages.install()
+```
+
+`install()` will start an interactive prompt to allow the user to pick which
+images (if you have several) that they would like to install.
+
+Once installed custom `juliaup` channels will be automatically created for each
+available system image.
+
+Starting `julia` with the newly added channel will look like the following:
 
 ```
 $ julia +1.7.3/MyCustomImages/MyImage
 ```
 
-which will find the linked system image and the depot path that contains any
-artifacts it may require and then launch `julia` with those set correctly.
+where `1.7.3` would be whatever Julia version you installed `MyCustomImages`
+with.
 
-If the channel name is too long for you liking then you can alias it to another
-shorter channel name with `juliaup` like so:
+If the channel name is too long for your liking then you can alias it to
+another shorter channel name with `juliaup` like so:
 
 ```
 $ juliaup link MyImage julia +1.7.3/MyCustomImages/MyImage
 ```
 
 which can then be started with just `julia +MyImage`.
+
+# Associated Projects
+
+  - [`system-image-loader`](https://github.com/MichaelHatherly/system-image-loader)
+    provides the binary loader used to locate depot and image file paths for a
+    given custom channel.
+
+  - [`CuratedSystemImages.jl`](https://github.com/MichaelHatherly/CuratedSystemImages.jl)
+    provides a selection of pre-built system images as Julia artifacts that can
+    be installed and used as custom channels.
+
+  - [`curated-system-images`](https://github.com/MichaelHatherly/curated-system-images)
+    is the builder repository for the above Julia package and is where all the
+    project manifests are located for generating specific system image bundles.
+
