@@ -17,19 +17,25 @@ export @ArtifactInstaller, ArtifactConfig, @artifact_str, LazyArtifacts
 
 export Config
 
-export link, remove
-
 #
 # Provider Interface:
 #
 
 struct ArtifactInstaller
+    mod::Module
     lookup::Function
     names::Vector{String}
 end
 
 function Base.show(io::IO, a::ArtifactInstaller)
-    print(io, "$ArtifactInstaller(", repr(a.names), ")")
+    toml = artifact_file(a.mod)
+    print(io, "$ArtifactInstaller(\n")
+    println(io, "    module: $(a.mod),")
+    for each in sort(a.names)
+        installed = artifact_installed(toml, each) ? "installed" : "not installed"
+        println(io, "    $(repr(each)) = $(repr(installed)),")
+    end
+    print(io, ")")
 end
 
 function (installer::ArtifactInstaller)()
@@ -43,6 +49,7 @@ function (installer::ArtifactInstaller)()
             installer.lookup(name)
             @info "finished installing `$name` system image."
         end
+        cleanup_links(installer.mod, installer.names)
     else
         error("cannot use interactive installer in non-interactive Julia session.")
     end
@@ -81,7 +88,7 @@ macro ArtifactInstaller(artifacts...)
         push!(expr.args, :(name == $name && return $artifact))
     end
     push!(expr.args, :(error("not a valid artifact: `$name`.")))
-    return esc(:($(ArtifactInstaller)((name) -> $expr, $names)))
+    return esc(:($(ArtifactInstaller)($(__module__), (name) -> $expr, $names)))
 end
 
 const __installer = @ArtifactInstaller(
@@ -115,21 +122,43 @@ system_image_loader() = joinpath(artifact"system-image-loader", "system-image-lo
 # `juliaup` helpers for creating linked channels that point to the right places.
 #
 
-function link(package::Module, image::Symbol)
-    channel = channel_name(package, image)
-    julia = VERSION # TODO: maybe not hardcoded.
-    launcher = system_image_loader()
-    # Create the link for juliaup to be able to launch this channel. The trailing `--` is needed
-    # to allow passing extra arguments to the launched julia process.
-    run(`juliaup link $channel $launcher -- --julia=$julia --package=$package --image=$image --`)
+function cleanup_links(version::VersionNumber, mod::Module, images::Vector{String})
+    if !isnothing(Sys.which("juliaup"))
+        package = nameof(mod)
+        prefix = "$version/$package"
+        lines = [line for line in readlines(`juliaup status`) if contains(line, prefix)]
+        for image in images
+            channel = "$prefix/$image"
+            for line in lines
+                if contains(line, channel)
+                    success(`juliaup remove $channel`) ||
+                        @warn "failed to remove `$channel`."
+                end
+            end
+        end
+        toml = artifact_file(mod)
+        loader = system_image_loader()
+        for image in images
+            if artifact_installed(toml, image)
+                channel = "$prefix/$image"
+                success(`juliaup link $channel $loader -- --julia=$version --package=$package --image=$image --`) ||
+                    @warn "failed to link `$channel`."
+            end
+        end
+    else
+        @warn "`juliaup` is required for this package to work."
+    end
+end
+cleanup_links(mod::Module, images::Vector{String}) = cleanup_links(VERSION, mod, images)
+
+function artifact_installed(toml, image)
+    sha1 = Artifacts.artifact_hash(image, toml)
+    return !isnothing(sha1) && Artifacts.artifact_exists(sha1)
 end
 
-function remove(package::Module, image::Symbol)
-    channel = channel_name(package, image)
-    run(`juliaup remove $channel`)
+function artifact_file(mod::Module)
+    return Artifacts.find_artifacts_toml(pkgdir(mod))
 end
-
-channel_name(package::Module, image::Symbol) = "$VERSION/$(nameof(package))/$image"
 
 #
 # Config:
