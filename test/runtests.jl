@@ -35,6 +35,7 @@ using TOML
         end
     end
 
-    @test isa(SystemImageLoader.__install, SystemImageLoader.ArtifactInstaller)
+    @test isa(SystemImageLoader.__installer, SystemImageLoader.ArtifactInstaller)
+    @test isdir(SystemImageLoader.__installer("system-image-loader"))
     @test isa(SystemImageLoader.__config, SystemImageLoader.ArtifactConfig)
 end
