@@ -145,6 +145,10 @@ function cleanup_links(version::VersionNumber, mod::Module, images::Vector{Strin
                     @warn "failed to link `$channel`."
             end
         end
+        # Ensure that we actually have the exact channel version required, and
+        # not e.g 1.7 instead of 1.7.3.
+        success(`juliaup add $("$version")`) ||
+            @info "`juliaup` channel `$(version)` already added, skipping."
     else
         @warn "`juliaup` is required for this package to work."
     end
