@@ -40,16 +40,27 @@ end
 
 function (installer::ArtifactInstaller)()
     if isinteractive()
-        @info "pick the system images you would like to install."
+        printstyled("Pick the system images you would like to install.\n"; bold=true, color=:blue)
         names = installer.names
         menu = TerminalMenus.MultiSelectMenu(names)
+        selected = String[]
         for index in TerminalMenus.request(menu)
             name = names[index]
+            push!(selected, name)
             @info "installing `$name` system image."
             installer.lookup(name)
             @info "finished installing `$name` system image."
         end
-        cleanup_links(installer.mod, installer.names)
+        aliases = String[]
+        if !isempty(selected)
+            println()
+            printstyled("Add short names for selected images.\n"; bold=true, color=:blue)
+            alias_menu = TerminalMenus.MultiSelectMenu(selected)
+            for index in TerminalMenus.request(alias_menu)
+                push!(aliases, selected[index])
+            end
+        end
+        cleanup_links(installer.mod, installer.names, selected, aliases)
     else
         error("cannot use interactive installer in non-interactive Julia session.")
     end
@@ -122,7 +133,7 @@ system_image_loader() = joinpath(artifact"system-image-loader", "system-image-lo
 # `juliaup` helpers for creating linked channels that point to the right places.
 #
 
-function cleanup_links(version::VersionNumber, mod::Module, images::Vector{String})
+function cleanup_links(version::VersionNumber, mod::Module, images, selected, aliases)
     if !isnothing(Sys.which("juliaup"))
         package = nameof(mod)
         prefix = "$version/$package"
@@ -131,19 +142,23 @@ function cleanup_links(version::VersionNumber, mod::Module, images::Vector{Strin
             channel = "$prefix/$image"
             for line in lines
                 if contains(line, channel)
-                    success(`juliaup remove $channel`) ||
-                        @warn "failed to remove `$channel`."
+                    success(`juliaup remove $channel`)
                 end
             end
         end
         toml = artifact_file(mod)
         loader = system_image_loader()
-        for image in images
+        for image in selected
             if artifact_installed(toml, image)
                 channel = "$prefix/$image"
                 success(`juliaup link $channel $loader -- --julia=$version --package=$package --image=$image --`) ||
                     @warn "failed to link `$channel`."
             end
+        end
+        for alias in aliases
+            success(`juliaup remove $alias`)
+            channel = "$prefix/$alias"
+            success(`juliaup link $alias julia $("+$channel")`)
         end
         # Ensure that we actually have the exact channel version required, and
         # not e.g 1.7 instead of 1.7.3.
@@ -153,7 +168,7 @@ function cleanup_links(version::VersionNumber, mod::Module, images::Vector{Strin
         @warn "`juliaup` is required for this package to work."
     end
 end
-cleanup_links(mod::Module, images::Vector{String}) = cleanup_links(VERSION, mod, images)
+cleanup_links(mod::Module, images, selected, aliases) = cleanup_links(VERSION, mod, images, selected, aliases)
 
 function artifact_installed(toml, image)
     sha1 = Artifacts.artifact_hash(image, toml)
