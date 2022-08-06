@@ -1,0 +1,46 @@
+name: Update Artifacts
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Artifacts version to build.'
+        required: true
+        type: 'string'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - uses: julia-actions/setup-julia@v1
+        with:
+          version: '1.7'
+          arch: x64
+
+      - name: Instantiate artifactutils environment
+        run: julia --project=.artifactutils -e 'import Pkg; Pkg.instantiate()'
+
+      - name: Update the artifacts
+        run: julia --project=.artifactutils .artifactutils/update.jl ${{ inputs.version }}
+
+      - name: Create pull request
+        id: create_pr
+        uses: peter-evans/create-pull-request@923ad837f191474af6b1721408744feb989a4c27
+        with:
+          token: ${{  secrets.GITHUB_TOKEN }}
+          commit-message: '🤖 Automatic update of `Artifacts.toml`.'
+          title: '🤖 Automatic update of `Artifacts.toml`.'
+          body: |-
+            This pull request updates the `Artifacts.toml` to the latest versions.
+          branch: bot/update/${{ matrix.image }}/${{ github.ref }}
+          delete-branch: true
+          add-paths: Artifacts.toml
