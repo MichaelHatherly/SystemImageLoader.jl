@@ -106,7 +106,7 @@ Base.show(io::IO, a::ArtifactConfig) = print(io, "$ArtifactConfig($(repr(a.insta
 function (config::ArtifactConfig)(name::Symbol)
     name = String(name)
     depot = config.installer.lookup(name)
-    image = joinpath(depot, "system-images", "$name")
+    image = joinpath(depot, "environments", "$name", "$name")
     return Config(; image, depot)
 end
 
@@ -292,10 +292,22 @@ function toml(config::Config; stdout=stdout)
     depot_path = unique!(insert!(copy(Base.DEPOT_PATH), 2, depot))
     depot_path_expanded = join(depot_path, PATH_SEPARATOR)
 
+    # Insert a named environment for package lookup. The system image build
+    # scripts must generate an environment called `$image` in
+    # `.julia/environments/$image` that contains the full Project.toml,
+    # Manifest.toml, and optionally `LocalPreferences.toml`. Additionally
+    # package sources must be provided in `.julia/packages/`, source content
+    # can be discarded, so long as a `Project.toml` and `src/PackageName.jl`
+    # exists.
+    name = first(splitext(basename(image)))
+    load_path = unique!(insert!(copy(Base.LOAD_PATH), 2, "@$name"))
+    load_path_expanded = join(load_path, PATH_SEPARATOR)
+
     # Write to simple TOML format. We don't need `TOML.jl` since we're only
     # using basic values. The rust side of things uses a TOML parser though.
     println(stdout, "image = ", repr(image))
     println(stdout, "depot = ", repr(depot_path_expanded))
+    println(stdout, "load_path = ", repr(load_path_expanded))
 end
 toml(@nospecialize(value); stdout=stdout) = println(stdout, "")
 
