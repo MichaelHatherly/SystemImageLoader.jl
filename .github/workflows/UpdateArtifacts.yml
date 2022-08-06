@@ -36,11 +36,11 @@ jobs:
         id: create_pr
         uses: peter-evans/create-pull-request@923ad837f191474af6b1721408744feb989a4c27
         with:
-          token: ${{  secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: '🤖 Automatic update of `Artifacts.toml`.'
           title: '🤖 Automatic update of `Artifacts.toml`.'
           body: |-
             This pull request updates the `Artifacts.toml` to the latest versions.
-          branch: bot/update/${{ matrix.image }}/${{ github.ref }}
+          branch: bot/update-artifacts/${{ github.ref }}
           delete-branch: true
           add-paths: Artifacts.toml
