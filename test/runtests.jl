@@ -17,9 +17,10 @@ using TOML
     SystemImageLoader.toml(config; stdout=buffer)
     toml = TOML.parse(String(take!(buffer)))
 
-    @test length(toml) == 2
+    @test length(toml) == 3
     @test isfile(toml["image"])
     @test !isempty(toml["depot"])
+    @test !isempty(toml["load_path"])
 
     @test_throws ErrorException SystemImageLoader.config(:default)
 
