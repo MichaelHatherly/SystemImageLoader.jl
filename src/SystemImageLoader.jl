@@ -133,8 +133,19 @@ system_image_loader() = joinpath(artifact"system-image-loader", "system-image-lo
 # `juliaup` helpers for creating linked channels that point to the right places.
 #
 
+function has_juliaup()
+    # HACK: since `Sys.which("juliaup")` was failing on Windows.
+    try
+        success(`juliaup --version`)
+        return true
+    catch exception
+        @debug "failed to run check for `juliaup`" exception
+        return false
+    end
+end
+
 function cleanup_links(version::VersionNumber, mod::Module, images, selected, aliases)
-    if !isnothing(Sys.which("juliaup"))
+    if has_juliaup()
         package = nameof(mod)
         prefix = "$version/$package"
         lines = [line for line in readlines(`juliaup status`) if contains(line, prefix)]
