@@ -147,7 +147,7 @@ end
 function cleanup_links(version::VersionNumber, mod::Module, images, selected, aliases)
     if has_juliaup()
         package = nameof(mod)
-        prefix = "$version/$package"
+        prefix = "$package"
         lines = [line for line in readlines(`juliaup status`) if contains(line, prefix)]
         for image in images
             channel = "$prefix/$image"
@@ -159,10 +159,13 @@ function cleanup_links(version::VersionNumber, mod::Module, images, selected, al
         end
         toml = artifact_file(mod)
         loader = system_image_loader()
+        selected_versions = Set{VersionNumber}()
         for image in selected
             if artifact_installed(toml, image)
+                julia = artifact_julia_version(toml, image, version)
+                push!(selected_versions, julia)
                 channel = "$prefix/$image"
-                success(`juliaup link $channel $loader -- --julia=$version --package=$package --image=$image --`) ||
+                success(`juliaup link $channel $loader -- --julia=$julia --package=$package --image=$image --`) ||
                     @warn "failed to link `$channel`."
             end
         end
@@ -171,10 +174,14 @@ function cleanup_links(version::VersionNumber, mod::Module, images, selected, al
             channel = "$prefix/$alias"
             success(`juliaup link $alias julia $("+$channel")`)
         end
-        # Ensure that we actually have the exact channel version required, and
+        # Ensure that we actually have the exact channel versions required, and
         # not e.g 1.7 instead of 1.7.3.
-        success(`juliaup add $("$version")`) ||
-            @info "`juliaup` channel `$(version)` already added, skipping."
+        for each in selected_versions
+            success(`juliaup add $("$each")`) ||
+                @info "`juliaup` channel `$(each)` already added, skipping."
+            each == version ||
+                @warn "ensure that you install `$mod` in your global environment for Julia `$each`."
+        end
     else
         @warn "`juliaup` is required for this package to work."
     end
@@ -188,6 +195,24 @@ end
 
 function artifact_file(mod::Module)
     return Artifacts.find_artifacts_toml(pkgdir(mod))
+end
+
+# Check whether the manifest used to build the requested system image contains
+# and Julia version for which the manifest was created and use that.
+function artifact_julia_version(toml, image, default)
+    sha1 = Artifacts.artifact_hash(image, toml)
+    if !isnothing(sha1)
+        path = Artifacts.artifact_path(sha1)
+        manifest = joinpath(path, "environments", "$image", "Manifest.toml")
+        if isfile(manifest)
+            dict = TOML.parsefile(manifest)
+            if haskey(dict, "julia_version")
+                return VersionNumber(dict["julia_version"])
+            end
+        end
+    end
+    @warn "no Julia version found for image, using default:" toml image default
+    return default
 end
 
 #
