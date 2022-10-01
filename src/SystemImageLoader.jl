@@ -147,7 +147,7 @@ end
 function cleanup_links(version::VersionNumber, mod::Module, images, selected, aliases)
     if has_juliaup()
         package = nameof(mod)
-        prefix = "$version/$package"
+        prefix = "$package"
         lines = [line for line in readlines(`juliaup status`) if contains(line, prefix)]
         for image in images
             channel = "$prefix/$image"
