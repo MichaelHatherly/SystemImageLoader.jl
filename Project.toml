@@ -1,7 +1,7 @@
 name = "SystemImageLoader"
 uuid = "dc30da40-fce8-4b3c-960e-234cbed6f4a5"
 authors = ["Mike <michaelhatherly@gmail.com>"]
-version = "0.10.0"
+version = "0.10.1"
 
 [deps]
 Artifacts = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
